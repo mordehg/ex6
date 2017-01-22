@@ -153,8 +153,13 @@ stack<Point *> *Trip::getPath() {
     return path;
 }
 
-void Trip::setPath() {
-    path = this->bfs->getPath(start, end);
+bool Trip::setPath() {
+    bool existPath=this->bfs->isExistPath(start,end);
+    if (existPath){
+        path = this->bfs->getPath(start, end);
+        return true;
+    }
+    return false;
 }
 
 void Trip::moveOneStep() {

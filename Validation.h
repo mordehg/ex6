@@ -10,12 +10,17 @@
 #include "Color.h"
 #include "CarType.h"
 #include "Status.h"
+#include "TaxiCenter.h"
+
 using namespace std;
 class Validation {
 private:
     bool is_server;
+    TaxiCenter* taxiCenter;
 public:
-    Validation(bool isServer);
+    Validation(bool isServer, TaxiCenter* taxiCenter);
+
+    ~Validation();
 
     bool validMapNum(int numOfArgument);
 
@@ -31,6 +36,10 @@ public:
     bool validCabLength(int numOfArgument);
 
     bool validCab(int id, int type, CarType manufacture, Color color);
+
+    bool validDriverId(int id);
+
+    bool validDriverIdLength(int numOfArgument);
 
     bool validDriverLength(int numOfArgument);
 

@@ -31,6 +31,8 @@ public:
 
     virtual Block *getBlock(Point point) {};
 
+    virtual Block *getBlock(int x, int y) {};
+
     virtual void setObstacles(int num) {};
 
     virtual int mapSize() {};

@@ -51,13 +51,14 @@ public:
  */
 GameFlow::GameFlow(int portNo1) {
     this->bfs = NULL;
+    this->grid = NULL;
     this->taxiCenter = new TaxiCenter(this->bfs);
     this->comm = NULL;
     this->time = 0;
     this->driversNum=0;
     this->tripsNum=0;
     this->portNo = portNo1;
-    this->validCheck = new Validation(true);
+    this->validCheck = new Validation(true, this->taxiCenter);
     pthread_mutex_init(&this->connection_locker, 0);
     pthread_mutex_init(&this->list_locker, 0);
 }
@@ -126,14 +127,14 @@ void GameFlow::startGame() {
     Matrix matrix(sizeX, sizeY);
     //Matrix matrix(6, 6);
     // save matrix address at map object.
-    Map *map = &matrix;
-    this->bfs = new Bfs(map);
+    this->grid = &matrix;
+    this->bfs = new Bfs(this->grid);
     //set obstacles
     do {
         cin >> numOfObstacles;
-    } while (!this->validCheck->validObst(map, numOfObstacles));
+    } while (!this->validCheck->validObst(this->grid, numOfObstacles));
     if (numOfObstacles > 0) {
-        map->setObstacles(numOfObstacles);
+        this->grid->setObstacles(numOfObstacles);
     }
     int choice;
     cin >> choice;
@@ -220,8 +221,14 @@ void *test(void* ptr){
 void *createBfsForTrip(void* ptr) {
     TripHandler* handlerT = (TripHandler*)ptr;
     pthread_mutex_lock(&handlerT->flow->list_locker);
-    handlerT->trip->setPath();
-    finishTrips[handlerT->index] = true;
+    if(!handlerT->trip->setPath()){
+        handlerT->flow->getCenter()->popTrip(handlerT->index);
+        handlerT->flow->decreaseTripNum();
+        handlerT->flow->popFinishTrips(handlerT->index);
+    }
+    else{
+        finishTrips[handlerT->index] = true;
+    }
     pthread_mutex_unlock(&handlerT->flow->list_locker);
     pthread_exit(ptr);
 }
@@ -250,22 +257,12 @@ void GameFlow::recieveDrivers() {
     this->tripsNum=tripIndex;
 }
 
-vector<string> GameFlow::getTripStrings() {
-    vector<string> trip_data;
-    do {
-        trip_data = this->inputParser();
-    } while (!this->validCheck->validTripLength(trip_data.size()));
-    return trip_data;
-}
-
-
-void GameFlow::buildTrip() {
-
+bool GameFlow::buildTrip() {
     int id, xStart, yStart, xEnd, yEnd, numOfPassengers, startTime;
     double tariff;
     vector<string> trip_data;
-    do {
-        trip_data = getTripStrings();
+    trip_data = this->inputParser();
+    if (this->validCheck->validTripLength(trip_data.size())){
         id = atoi(trip_data[0].c_str());
         xStart = atoi(trip_data[1].c_str());
         yStart = atoi(trip_data[2].c_str());
@@ -274,89 +271,85 @@ void GameFlow::buildTrip() {
         numOfPassengers = atoi(trip_data[5].c_str());
         tariff = (double) atoi(trip_data[6].c_str());
         startTime = atoi(trip_data[7].c_str());
-
-    } while(!this->validCheck->validTrip(this->bfs->getMap(),id,xStart,yStart,xEnd,yEnd,numOfPassengers,tariff,startTime));
-
-    Point *start = new Point(xStart, yStart);
-    Point *end = new Point(xEnd, yEnd);
-    Trip *trip = new Trip(this->bfs, id, start, end, numOfPassengers, tariff,
-                          startTime);
-    taxiCenter->addTrip(trip);
-    start = NULL;
-    end = NULL;
-    trip=NULL;
+        if(this->validCheck->validTrip(this->bfs->getMap(),id,xStart,yStart,
+                                       xEnd,yEnd,numOfPassengers,tariff,startTime)){
+            Point *start = new Point(xStart, yStart);
+            Point *end = new Point(xEnd, yEnd);
+            Trip *trip = new Trip(this->bfs, id, start, end, numOfPassengers, tariff,
+                                  startTime);
+            taxiCenter->addTrip(trip);
+            start = NULL;
+            end = NULL;
+            trip=NULL;
+            return true;
+        }
+    }
+    return false;
 }
+
+
 /**
  * insert a new trip to the trips in the taxi center
  * trip doesn't have a driver yet, only in choice 6 we add a driver to
  * each trip
  */
 void GameFlow::insertARide() {
-    this->buildTrip();
-    int tripIndex=this->tripsNum;
-    Trip* trip=taxiCenter->getTrips()[tripIndex];
-    int numDrivers=this->driversNum;
-    TripHandler* handler = new TripHandler(this,trip,tripIndex);
-    pthread_create(&this->threadsTrip[tripIndex], NULL, createBfsForTrip,
-                   (void*)handler);
-    this->tripsNum=tripIndex+1;
-    this->driversNum=numDrivers;
-    // set the pointers to point on null so when
-    // the objects will delete those pointers will no longer point on them
+    if(this->buildTrip()){
+        int tripIndex=this->tripsNum;
+        Trip* trip=taxiCenter->getTrips()[tripIndex];
+        int numDrivers=this->driversNum;
+        TripHandler* handler = new TripHandler(this,trip,tripIndex);
+        pthread_create(&this->threadsTrip[tripIndex], NULL, createBfsForTrip,
+                       (void*)handler);
+        this->tripsNum=tripIndex+1;
+        this->driversNum=numDrivers;
+        // set the pointers to point on null so when
+        // the objects will delete those pointers will no longer point on them
+    }
+    else{
+        popFinishTrips(this->tripsNum);
+    }
 }
 
-vector<string> GameFlow::getCabStrings() {
-    vector<string> cab_data;
-    do {
-        cab_data = this->inputParser();
-    } while (!this->validCheck->validCabLength(cab_data.size()));
-    return cab_data;
-}
-
-void GameFlow::buildCab() {
+/**
+ * insert a new vehicle to the cabs in the taxi center
+ */
+void GameFlow::insertAVehicle() {
     vector<string> cab_data;
     int id, taxiType;
     char manufacturerLetter, colorLetter, c;
     enum Color color;
     enum CarType carType;
-    do {
-        cab_data = this->getCabStrings();
+    cab_data = this->inputParser();
+    if(this->validCheck->validCabLength(cab_data.size())){
         id = atoi(cab_data[0].c_str());
         taxiType = atoi(cab_data[1].c_str());
         manufacturerLetter = cab_data[2].c_str()[0];
         colorLetter = cab_data[3].c_str()[0];
         color = Color(colorLetter);
         carType = CarType(manufacturerLetter);
-    } while(!this->validCheck->validCab(id, taxiType, carType, color));
-    Cab* cab = new Cab(id, carType, color, taxiType, 1);
-    taxiCenter->addCab(cab);
-    cab = NULL;
-}
-
-
-/**
- * insert a new vehicle to the cabs in the taxi center
- */
-void GameFlow::insertAVehicle() {
-    this->buildCab();
+        if(this->validCheck->validCab(id, taxiType, carType, color)){
+            Cab* cab = new Cab(id, carType, color, taxiType, 1);
+            taxiCenter->addCab(cab);
+            cab = NULL;
+        }
+    }
 }
 
 /**
  *printing the currrent location of a specific driver
  */
 void GameFlow::printDriverLocation() {
-    vector<Driver *> v = taxiCenter->getDriversInfo();
+    vector<string> driverId_data;
     int driverId;
-    cin >> driverId;
-    /*
-    while(!isFinishBuildThread()){}
-    for (vector<Driver *>::iterator it = v.begin(); it != v.end(); it++) {
-        if ((*it)->getDriverId() == driverId) {
-            cout << *((*it)->getCurrentLocation()) << endl;
+    driverId_data = this->inputParser();
+    if(this->validCheck->validDriverIdLength(driverId_data.size())){
+        driverId = atoi(driverId_data[0].c_str());
+        if(this->validCheck->validDriverId(driverId)){
+            cout << *(taxiCenter->getDriver(driverId)->getCurrentLocation())
+                 <<endl;
         }
     }
-     */
-    cout << *(taxiCenter->getDriver(driverId)->getCurrentLocation()) << endl;
 }
 
 /**
@@ -379,7 +372,7 @@ void GameFlow::moveTheClock() {
             trips[i]->moveOneStep();
         } else if (trips[i]->getPath()->empty()) {
             trips[i]->getDriver()->setAvailable(true);
-            taxiCenter->popTrip();
+            taxiCenter->popTrip(i);
         }
     }
     time++;
@@ -426,9 +419,40 @@ bool GameFlow::isFinishBuildThread() {
     return all;
 }
 
+void GameFlow::popFinishTrips(int i) {
+    vector<bool> temp;
+    int j=0;
+    while (!finishTrips.empty()) {
+        if(i==j){
+            finishTrips.pop_back();
+        }
+        else{
+            temp.push_back(finishTrips.back());
+            finishTrips.pop_back();
+        }
+        j++;
+    }
+    while (!temp.empty()) {
+        finishTrips.push_back((temp.back()));
+        temp.pop_back();
+    }
+}
+
 
 void GameFlow::resetFinish10(){
     for(int i=0; i<finish_10.size(); i++){
         finish_10[i]=false;
     }
+}
+
+TaxiCenter* GameFlow::getCenter(){
+    return this->taxiCenter;
+}
+
+void GameFlow::decreaseTripNum(){
+    this->tripsNum--;
+}
+
+Map* GameFlow::getMap(){
+    return this->grid;
 }

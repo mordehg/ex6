@@ -8,6 +8,11 @@ using namespace std;
 using namespace boost::iostreams;
 using namespace boost::archive;
 
+/**
+ * get string input from user and split string by ',' and return the split
+ * string in vector.
+ * @return split string in vector
+ */
 vector<string> inputParser() {
     vector<string> data;
     string input;
@@ -31,8 +36,11 @@ vector<string> inputParser() {
 
 
 int main(int argc, char *argv[]) {
-    Validation* valid = new Validation(false);
+    // create validation class. send null - dont have taxi center
+    Validation* valid = new Validation(false, NULL);
+    //get string input from user and split string by ','
     vector<string> driver_data = inputParser();
+    // check if num of arguments from input valid. if not exit from program.
     if (!valid->validDriverLength(driver_data.size()))
         exit(0);
     int id = atoi(driver_data[0].c_str());
@@ -41,17 +49,16 @@ int main(int argc, char *argv[]) {
     int experience = atoi(driver_data[3].c_str());
     int cabId = atoi(driver_data[4].c_str());
     Status status = Status(statusLetter);
+    // check if the arguments from input are valid. if not exit from program.
     if (!valid->validDreiver(id, age, status,experience,cabId))
         exit(0);
-
+    // if all is valid create new driver and send to server
     Driver* driver = new Driver(id, age, status, experience, cabId);
-
     // create new socket
     //Socket *udp = new Udp(0, atoi(argv[2]));
     Socket *sock=new Tcp(0,atoi(argv[2]));
     sock->initialize();
     char buffer[9999];
-
     // serial driver object to string
     string serial_str;
     back_insert_device<std::string> inserter(serial_str);
@@ -59,10 +66,8 @@ int main(int argc, char *argv[]) {
     binary_oarchive oa(s);
     oa << driver;
     s.flush();
-
     // send driver object to server
     sock->sendData(serial_str, 0);
-    // get a cab
 
     // get a cab serial string from server and add it to driver.
     sock->reciveData(buffer, sizeof(buffer), 0);

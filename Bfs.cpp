@@ -87,15 +87,26 @@ Block *Bfs::findPath(Point *start, Point *end) {
 stack<Point *>  *Bfs::getPath(Point *start, Point *end) {
     Block *currBlock = this->findPath(start, end);
     // create stack and push all the parents from destination block to source.
-    stack<Point *> *path = new stack<Point*>;
-
-    path->push(currBlock->getLocation());
-    while (!currBlock->getLocation()->equals(*start)) {
-        path->push(currBlock->getParent()->getLocation());
-        currBlock = currBlock->getParent();
+    if (currBlock->getParent()){
+        stack<Point *> *path = new stack<Point*>;
+        path->push(currBlock->getLocation());
+        while (!currBlock->getLocation()->equals(*start)) {
+            path->push(currBlock->getParent()->getLocation());
+            currBlock = currBlock->getParent();
+        }
+        path->pop();
+        return path;
     }
-    path->pop();
-    return path;
+    return NULL;
+
+}
+
+bool Bfs::isExistPath(Point *start, Point *end){
+    Block *currBlock = this->findPath(start, end);
+    if (currBlock->getParent()){
+        return true;
+    }
+    return false;
 }
 
 /**

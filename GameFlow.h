@@ -37,12 +37,7 @@ private:
     pthread_t threadsTrip[];
     int driversNum;
     int tripsNum;
-
-    vector<string> getTripStrings();
-    void buildTrip();
-
-    vector<string> getCabStrings();
-    void buildCab();
+    bool buildTrip();
 public:
     pthread_mutex_t connection_locker;
     pthread_mutex_t list_locker;
@@ -67,9 +62,17 @@ public:
 
     void sendClientNewLocation();
 
+    void popFinishTrips(int i);
+
+    void decreaseTripNum();
+
+    TaxiCenter* getCenter();
+
     void killTheClient(int i);
 
     Socket* getSock();
+
+    Map* getMap();
 
     bool isFinish10();
 

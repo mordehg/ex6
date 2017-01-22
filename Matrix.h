@@ -35,6 +35,8 @@ public:
 
     Block *getBlock(Point point);
 
+    Block *getBlock(int x, int y);
+
     ~Matrix();
 
     void setObstacles(int num);

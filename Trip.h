@@ -52,7 +52,7 @@ public:
 
     stack<Point *> *getPath();
 
-    void setPath();
+    bool setPath();
 
     Trip(Bfs* bfs, int id, Point *start1, Point *end1, int numOfPassengers,
              double tariff1, int startTrip1);

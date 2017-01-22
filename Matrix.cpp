@@ -113,6 +113,10 @@ vector<vector<Block *> > Matrix::getMap() {
 Block *Matrix::getBlock(Point point) {
     return this->map[point.getX()][point.getY()]->getCurrBlock();
 }
+
+Block *Matrix::getBlock(int x, int y){
+    return this->map[x][y];
+}
 /**
  * set obstacle in the map
  * @param num the num of obstacle the user asked

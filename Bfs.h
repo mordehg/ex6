@@ -32,6 +32,8 @@ public:
 
     Block *getNeighborSide(Block *curr, int side);
 
+    bool isExistPath(Point *start, Point *end);
+
     Map* getMap();
 
     ~Bfs();

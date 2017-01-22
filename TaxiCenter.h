@@ -28,11 +28,11 @@ public:
 
     void addTrip(Trip *trip);
 
-    void popTrip();
+    void popTrip(int i);
 
-    void popDriver();
+    void popDriver(int i);
 
-    void popCab();
+    void popCab(int i);
 
     long numOfDrivers();
 
@@ -43,6 +43,11 @@ public:
     ~TaxiCenter();
 
     Driver* getDriver(int id);
+
+    Cab* getCab(int id);
+
+    Trip* getTrip(int id);
+
     Driver* getClosestDriver(Point* start);
 
     void setDriversInfo(const vector<Driver *> &driversInfo);

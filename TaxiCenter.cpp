@@ -144,20 +144,23 @@ long TaxiCenter::numOfTrips() {
 }
 
 /**
- * delete the first trip, to do that we need a temp vector, we transfer all
- * the trips from trips vector to temp, getting the last trip from temp (was
- * the first in trips) and returning all the trips to trips vector
+* delete trip at index i from trips vector
  */
-void TaxiCenter::popTrip() {
+void TaxiCenter::popTrip(int i) {
     vector<Trip *> temp;
+    int j=0;
     while (!trips.empty()) {
-        temp.push_back(trips.back());
-        trips.pop_back();
+        if(j==i){
+            Trip *t = trips.back();
+            trips.pop_back();
+            delete (t);
+        }
+        else{
+            temp.push_back(trips.back());
+            trips.pop_back();
+        }
+        j++;
     }
-    Trip *t = temp.back();
-    temp.pop_back();
-    t->getDriver()->setAvailable(true);
-    delete (t);
     while (!temp.empty()) {
         trips.push_back((temp.back()));
         temp.pop_back();
@@ -165,21 +168,24 @@ void TaxiCenter::popTrip() {
 }
 
 /**
- * delete the first driver, to do that we need a temp vector, we transfer all
- * the drivers from driversInfo vector to temp, getting the last trip from temp
- * (was the first in driversInfo) and returning all the drivers to driversInfo
- * vector
+ * delete driver at index i from drivers vector.
  */
 
-void TaxiCenter::popDriver() {
+void TaxiCenter::popDriver(int i) {
     vector<Driver *> temp;
+    int j=0;
     while (!driversInfo.empty()) {
-        temp.push_back(driversInfo.back());
-        driversInfo.pop_back();
+        if (j==i){
+            Driver *d = driversInfo.back();
+            driversInfo.pop_back();
+            delete (d);
+        }
+        else{
+            temp.push_back(driversInfo.back());
+            driversInfo.pop_back();
+        }
+        j++;
     }
-    Driver *d = temp.back();
-    temp.pop_back();
-    delete (d);
     while (!temp.empty()) {
         driversInfo.push_back((temp.back()));
         temp.pop_back();
@@ -187,20 +193,24 @@ void TaxiCenter::popDriver() {
 }
 
 /**
- * delete the first cab, to do that we need a temp vector, we transfer all
- * the cabs from cabs vector to temp, getting the last cab from temp (was
- * the first in cabs) and returning all the cabs to cabs vector
+ * delete cab at index i from cabs vector.
  */
 
-void TaxiCenter::popCab() {
+void TaxiCenter::popCab(int i) {
     vector<Cab *> temp;
+    int j=0;
     while (!cabs.empty()) {
-        temp.push_back(cabs.back());
-        cabs.pop_back();
+        if(i==j){
+            Cab *c = cabs.back();
+            cabs.pop_back();
+            delete (c);
+        }
+        else{
+            temp.push_back(cabs.back());
+            cabs.pop_back();
+        }
+        j++;
     }
-    Cab *c = temp.back();
-    temp.pop_back();
-    delete (c);
     while (!temp.empty()) {
         cabs.push_back((temp.back()));
         temp.pop_back();
@@ -209,7 +219,7 @@ void TaxiCenter::popCab() {
 
 /**
  * get the driver
- * @return the first driver in the vector
+ * @return the driver with the given id, if not have return null;
  */
 Driver *TaxiCenter::getDriver(int id) {
     for (int i=0; i< driversInfo.size();i++)
@@ -218,8 +228,41 @@ Driver *TaxiCenter::getDriver(int id) {
             return driversInfo[i];
         }
     }
+    return NULL;
 }
 
+/**
+ * get the cab
+ * @return the cab with the given id, if not have return null;
+ */
+Cab *TaxiCenter::getCab(int id) {
+    for (int i=0;i<cabs.size();i++){
+        if(cabs[i]->getCabId()==id){
+            return cabs[i];
+        }
+    }
+    return NULL;
+}
+
+/**
+ * get the trip
+ * @return the trip with the given id, if not have return null;
+ */
+Trip *TaxiCenter::getTrip(int id){
+    for(int i=0; i<trips.size();i++){
+        if(trips[i]->getTripId()==id){
+            return trips[i];
+        }
+    }
+    return NULL;
+}
+
+/**
+ * find and return the closest driver, if dont have one that avilable return
+ * null.
+ * @param start point of the trip
+ * @return the closest driver, if dont have one that avilable return null.
+ */
 Driver* TaxiCenter::getClosestDriver(Point* start){
     int minSteps=this->bfs->getMap()->getRowsSize()*this->bfs->getMap()
             ->getColumnsSize()+1;
