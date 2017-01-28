@@ -28,18 +28,17 @@ public:
 
     bool validMap(vector<string> mapData);
 
-    bool validObst(Map* map, int obsticalNum);
+    bool validObst(Map* map, int numOfArgument, vector<string> obstData);
 
     bool validTripLength(int numOfArgument);
 
-    bool validTrip(Map* map, int id, int xStart, int yStart, int xEnd, int yEnd,
-                   int numOfPassengers,double tarrif, int startTime);
+    bool validTrip(Map* map, vector<string> trip_data);
 
     bool validCabLength(int numOfArgument);
 
-    bool validCab(int id, int type, CarType manufacture, Color color);
+    bool validCab(vector<string> cab_data);
 
-    bool validDriverId(int id);
+    bool validDriverId(vector<string> driverId_data);
 
     bool validDriverIdLength(int numOfArgument);
 
@@ -49,7 +48,7 @@ public:
 
     bool validObsLength(int numOfArgument);
 
-    bool validObsPoint(Map* map, int x, int y);
+    bool validObsPoint(Map* map, vector<string> pointData);
 
     bool validPointLength(int numOfArgument);
 
@@ -57,7 +56,9 @@ public:
 
     bool validNumDriverLength(int numOfArgument);
 
-    bool validNumDrivers(int num);
+    bool validNumDrivers(vector<string> driverNumData);
+
+    bool isNumber(string str);
 };
 
 

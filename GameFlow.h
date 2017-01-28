@@ -44,47 +44,26 @@ private:
 public:
     pthread_mutex_t connection_locker;
     pthread_mutex_t list_locker;
-
     GameFlow(int portNo);
-
     vector<string> inputParser();
-
     void establishCommunication(string str);
-
     void startGame();
-
     void recieveDrivers();
-
     void insertARide();
-
     void insertAVehicle();
-
     void printDriverLocation();
-
     void moveTheClock();
-
-    void sendClientNewLocation();
-
+    void inputObs();
     void popFinishTrips(int i);
-
     void decreaseTripNum();
-
     TaxiCenter* getCenter();
-
     void killTheClient(int i);
-
-    Socket* getSock();
-
     Map* getMap();
-
     bool isFinish10();
-
     bool isFinishBuildThread();
-
     void resetFinish10();
-
     vector<string> inputParserSpace();
-
+    void menu();
     ~GameFlow();
 
 };

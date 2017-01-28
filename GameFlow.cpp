@@ -9,9 +9,11 @@
 int option;
 vector<bool> finish_10;
 vector<bool> finishTrips;
-//vector<ClientHandler*> handlers;
 using namespace std;
 
+/**
+ * client handler class - thread driver.
+ */
 class ClientHandler{
 public:
     Socket* sock;
@@ -31,6 +33,9 @@ public:
 
 vector<ClientHandler*> handlers;
 
+/**
+ * trip handler class - thread trip.
+ */
 class TripHandler{
 public:
     GameFlow* flow;
@@ -81,10 +86,12 @@ GameFlow::~GameFlow() {
         delete (c);
         finish_10.pop_back();
     }
-
-
 }
 
+/**
+ * split string by ','
+ * @return vector of split string by ','
+ */
 vector<string> GameFlow::inputParser() {
     vector<string> data;
     string input;
@@ -106,6 +113,10 @@ vector<string> GameFlow::inputParser() {
     return data;
 }
 
+/**
+ * establish communication by upd or tcp.
+ * @param str udp or tcp.
+ */
 void GameFlow::establishCommunication(string str) {
     if (str=="UDP"){
         comm = new Udp(true, portNo);
@@ -117,43 +128,41 @@ void GameFlow::establishCommunication(string str) {
 }
 
 /**
- * menu optinos of program
+ * run the program.
  */
 void GameFlow::startGame() {
-    vector<string> obsData, mapData;
-    int sizeX, sizeY, numOfObstacles, numOfArgs;
+    int sizeX, sizeY;
+    // get input string for map from user.
+    vector<string> mapData;
     do {
         mapData=inputParserSpace();
-        //cin >> sizeX >> sizeY;
     } while (!this->validCheck->validMap(mapData));
+
+    // cast from string to int.
     sizeX=atoi(mapData[0].c_str());
     sizeY=atoi(mapData[1].c_str());
-    // create matrix.
+    // create matrix, bfs, taxi center and update taxi center member at
+    // validation
     Matrix matrix(sizeX, sizeY);
-    //Matrix matrix(6, 6);
-    // save matrix address at map object.
     this->grid = &matrix;
     this->bfs = new Bfs(this->grid);
     this->taxiCenter = new TaxiCenter(this->bfs);
     this->validCheck->setTaxiCenter(this->taxiCenter);
-
-    //set obstacles
-    do {
-        obsData = inputParser();
-        numOfArgs = obsData.size();
-    } while (!this->validCheck->validObst(this->grid, numOfArgs));
-    numOfObstacles=atoi(obsData[0].c_str());
-    while (numOfObstacles > 0) {
-        vector<string> pointData = inputParser();
-        if (this->validCheck->validPointLength(pointData.size())) {
-            int x = atoi(pointData[0].c_str());
-            int y = atoi(pointData[1].c_str());
-            if (this->validCheck->validObsPoint(this->getMap(), x, y)){
-                this->grid->setObstacles(x, y);
-                numOfObstacles--;
-            }
-        }
+    // get input string for obs from user.
+    this->inputObs();
+    // run menu of program.
+    this->menu();
+    //do join and exit from all threads
+    this->threadPool->terminate();
+    for(int i=0; i<this->driversNum;i++){
+        this->killTheClient(i);
     }
+}
+
+/**
+ * menu of program. exit when option is 7.
+ */
+void GameFlow::menu(){
     int choice;
     choice=0;
     do {
@@ -186,16 +195,40 @@ void GameFlow::startGame() {
             }
         }
     } while (choice != 7);
-    //do join and exit from all threads
-    this->threadPool->terminate();
-    for(int i=0; i<this->driversNum;i++){
-        this->killTheClient(i);
-        //pthread_join(this->threads[i], NULL);
-    }
 }
 
 
-void *test(void* ptr){
+/**
+ * get input string fot obs from user, check validation.
+ */
+void GameFlow::inputObs(){
+    // get input string for obstacles from user.
+    vector<string> obsData, pointData;
+    int numOfArgs,numOfObstacles;
+    do {
+        obsData = inputParser();
+        numOfArgs = obsData.size();
+    } while (!this->validCheck->validObst(this->grid, numOfArgs, obsData));
+    numOfObstacles=atoi(obsData[0].c_str());
+    while (numOfObstacles > 0) {
+        pointData = inputParser();
+        if (this->validCheck->validPointLength(pointData.size())) {
+            if (this->validCheck->validObsPoint(this->getMap(), pointData)){
+                int x = atoi(pointData[0].c_str());
+                int y = atoi(pointData[1].c_str());
+                this->grid->setObstacles(x, y);
+                numOfObstacles--;
+            }
+        }
+    }
+}
+
+/**
+ * driver thread.
+ * @param ptr ptr
+ * @return nothing.
+ */
+void *driverThread(void* ptr){
     char buffer[9999];
     ClientHandler* handler = (ClientHandler*)ptr;
     handler->sock->reciveData(buffer, sizeof
@@ -212,7 +245,6 @@ void *test(void* ptr){
     handler->taxiCenter->addDriverInfo(d2);
     pthread_mutex_unlock(&handler->flow->list_locker);
     //send the cab
-
     Cab *cab = handler->taxiCenter->getDriver(driverId)->getCab();
     string serial_str;
     boost::iostreams::back_insert_device<std::string> inserter(serial_str);
@@ -242,7 +274,11 @@ void *test(void* ptr){
     pthread_exit(ptr);
 }
 
-
+/**
+ * calcuate bfs.
+ * @param ptr ptr
+ * @return nothing
+ */
 void *createBfsForTrip(void* ptr) {
     TripHandler* handlerT = (TripHandler*)ptr;
     pthread_mutex_lock(&handlerT->flow->list_locker);
@@ -265,8 +301,8 @@ void GameFlow::recieveDrivers() {
     int numOfDrivers;
     vector<string> driverNumData = inputParser();
     if (this->validCheck->validNumDriverLength(driverNumData.size())) {
-        numOfDrivers = atoi(driverNumData[0].c_str());
-        if (this->validCheck->validNumDrivers(numOfDrivers)){
+        if (this->validCheck->validNumDrivers(driverNumData)){
+            numOfDrivers = atoi(driverNumData[0].c_str());
             char buffer[9999];
             this->establishCommunication("TCP");
             this->comm->initialize();
@@ -276,7 +312,7 @@ void GameFlow::recieveDrivers() {
                 ClientHandler *handler = new ClientHandler(this->comm,
                                                            this->taxiCenter, this, i);
                 handlers.push_back(handler);
-                pthread_create(&this->threads[i], NULL, test, (void *) handler);
+                pthread_create(&this->threads[i], NULL, driverThread, (void *) handler);
                 //pthread_join(this->threads[i], NULL);
                 finish_10.push_back(true);
             }
@@ -292,16 +328,15 @@ bool GameFlow::buildTrip() {
     vector<string> trip_data;
     trip_data = this->inputParser();
     if (this->validCheck->validTripLength(trip_data.size())){
-        id = atoi(trip_data[0].c_str());
-        xStart = atoi(trip_data[1].c_str());
-        yStart = atoi(trip_data[2].c_str());
-        xEnd = atoi(trip_data[3].c_str());
-        yEnd = atoi(trip_data[4].c_str());
-        numOfPassengers = atoi(trip_data[5].c_str());
-        tariff = (double) atoi(trip_data[6].c_str());
-        startTime = atoi(trip_data[7].c_str());
-        if(this->validCheck->validTrip(this->bfs->getMap(),id,xStart,yStart,
-                                       xEnd,yEnd,numOfPassengers,tariff,startTime)){
+        if(this->validCheck->validTrip(this->bfs->getMap(),trip_data)){
+            id = atoi(trip_data[0].c_str());
+            xStart = atoi(trip_data[1].c_str());
+            yStart = atoi(trip_data[2].c_str());
+            xEnd = atoi(trip_data[3].c_str());
+            yEnd = atoi(trip_data[4].c_str());
+            numOfPassengers = atoi(trip_data[5].c_str());
+            tariff = (double) atoi(trip_data[6].c_str());
+            startTime = atoi(trip_data[7].c_str());
             Point *start = new Point(xStart, yStart);
             Point *end = new Point(xEnd, yEnd);
             Trip *trip = new Trip(this->bfs, id, start, end, numOfPassengers, tariff,
@@ -349,18 +384,18 @@ void GameFlow::insertARide() {
 void GameFlow::insertAVehicle() {
     vector<string> cab_data;
     int id, taxiType;
-    char manufacturerLetter, colorLetter, c;
+    char manufacturerLetter, colorLetter;
     enum Color color;
     enum CarType carType;
     cab_data = this->inputParser();
     if(this->validCheck->validCabLength(cab_data.size())){
-        id = atoi(cab_data[0].c_str());
-        taxiType = atoi(cab_data[1].c_str());
-        manufacturerLetter = cab_data[2].c_str()[0];
-        colorLetter = cab_data[3].c_str()[0];
-        color = Color(colorLetter);
-        carType = CarType(manufacturerLetter);
-        if(this->validCheck->validCab(id, taxiType, carType, color)){
+        if(this->validCheck->validCab(cab_data)){
+            id = atoi(cab_data[0].c_str());
+            taxiType = atoi(cab_data[1].c_str());
+            manufacturerLetter = cab_data[2].c_str()[0];
+            colorLetter = cab_data[3].c_str()[0];
+            color = Color(colorLetter);
+            carType = CarType(manufacturerLetter);
             Cab* cab = new Cab(id, carType, color, taxiType, 1);
             taxiCenter->addCab(cab);
             cab = NULL;
@@ -376,8 +411,8 @@ void GameFlow::printDriverLocation() {
     int driverId;
     driverId_data = this->inputParser();
     if(this->validCheck->validDriverIdLength(driverId_data.size())){
-        driverId = atoi(driverId_data[0].c_str());
-        if(this->validCheck->validDriverId(driverId)){
+        if(this->validCheck->validDriverId(driverId_data)){
+            driverId = atoi(driverId_data[0].c_str());
             cout << *(taxiCenter->getDriver(driverId)->getCurrentLocation())
                  <<endl;
         }
@@ -403,7 +438,7 @@ void GameFlow::moveTheClock() {
                 ->empty()) {
             trips[i]->moveOneStep();
         }
-        if (trips[i]->getPath()->empty()) {
+        else if (trips[i]->getPath()->empty()) {
             trips[i]->getDriver()->setAvailable(true);
             taxiCenter->popTrip(i);
             decreaseTripNum();
@@ -431,6 +466,10 @@ void GameFlow::killTheClient(int i) {
     comm->sendData(serial_str,i);
 }
 
+/**
+ * check if all the threads of drivers finish to send info to client.
+ * @return true if finish, else false.
+ */
 bool GameFlow::isFinish10(){
     bool all=true;
         for(int i=0; i<finish_10.size(); i++){
@@ -442,6 +481,10 @@ bool GameFlow::isFinish10(){
         return all;
     }
 
+/**
+ * check if that all trips calculate bfs doen.
+ * @return true if doen. else false.
+ */
 bool GameFlow::isFinishBuildThread() {
     bool all=true;
     for(int i=0; i < this->tripsNum; i++){
@@ -453,6 +496,10 @@ bool GameFlow::isFinishBuildThread() {
     return all;
 }
 
+/**
+ * pop element at index i from bool vector.
+ * @param i
+ */
 void GameFlow::popFinishTrips(int i) {
     vector<bool> temp;
     int j=0;
@@ -472,25 +519,43 @@ void GameFlow::popFinishTrips(int i) {
     }
 }
 
-
+/**
+ * reset vector of bool to false, thread drivers not finish to sent point to
+ * clients.
+ */
 void GameFlow::resetFinish10(){
     for(int i=0; i<finish_10.size(); i++){
         finish_10[i]=false;
     }
 }
 
+/**
+ * getter of taxicenter
+ * @return pointer to taxicenter
+ */
 TaxiCenter* GameFlow::getCenter(){
     return this->taxiCenter;
 }
 
+/**
+ * decrease trip number.
+ */
 void GameFlow::decreaseTripNum(){
     this->tripsNum--;
 }
 
+/**
+ * getter of map member.
+ * @return pointer to map.
+ */
 Map* GameFlow::getMap(){
     return this->grid;
 }
 
+/**
+ * get string from user and split by space.
+ * @return vector of the split string.
+ */
 vector<string> GameFlow::inputParserSpace() {
     vector<string> data;
     string input;
@@ -511,3 +576,4 @@ vector<string> GameFlow::inputParserSpace() {
     data.push_back(current_str);
     return data;
 }
+

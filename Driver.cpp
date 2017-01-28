@@ -239,7 +239,7 @@ int Driver::setDataDriver(Socket* sock) {
         }
     }
     catch (...){
-        cout << "hhhhhh" <<endl;
+
     }
     return 0;
 
