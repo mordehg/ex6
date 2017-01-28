@@ -112,7 +112,7 @@ bool Validation::validTripLength(int numOfArgument) {
  * @param startTime start time of trip
  * @return true if valid, else false;
  */
-bool Validation::validTrip(Map* map, int id, int xStart, int yStart, int xEnd, int yEnd,
+bool Validation::validTrip(Map* map, int id, int xStart, int xEnd, int yStart, int yEnd,
                            int numOfPassengers, double tarrif, int startTime) {
     if(this->is_server){
         bool valid = true;
@@ -254,15 +254,29 @@ bool Validation::validDriverLength(int numOfArgument) {
  * @param cabID cab id of driver
  * @return true if valid, else false;
  */
-bool Validation::validDreiver(int id, int age, Status status, int exp, int cabID) {
+bool Validation::validDreiver(vector<string> driver_data) {
+    int id,age,exp,cabID;
+    char status;
     if (!this->is_server) {
         bool valid = true;
+        for(int i = 0; i < 5 ; i++) {
+            if(i!=2){
+                if(!isdigit(driver_data[i].c_str()[0]))
+                    valid= false;
+            }
+        }
+        id = atoi(driver_data[0].c_str());
+        age = atoi(driver_data[1].c_str());
+        status = driver_data[2].c_str()[0];
+        exp = atoi(driver_data[3].c_str());
+        cabID = atoi(driver_data[4].c_str());
+
         if (id < 0)
             valid = false;
         if (age <= 0)
             valid  = false;
-        if ((char)status != 'S' && (char)status != 'M'
-            && (char)status != 'D' && (char)status != 'W')
+        if (status != 'S' && status != 'M'
+            && status != 'D' && status != 'W')
             valid = false;
         if (exp < 0)
             valid = false;

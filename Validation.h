@@ -45,7 +45,7 @@ public:
 
     bool validDriverLength(int numOfArgument);
 
-    bool validDreiver(int id, int age, Status status, int exp, int capID);
+    bool validDreiver(vector<string> driverData);
 
     bool validObsLength(int numOfArgument);
 

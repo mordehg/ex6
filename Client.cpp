@@ -43,15 +43,15 @@ int main(int argc, char *argv[]) {
     // check if num of arguments from input valid. if not exit from program.
     if (!valid->validDriverLength(driver_data.size()))
         exit(0);
+    // check if the arguments from input are valid. if not exit from program.
+    if (!valid->validDreiver(driver_data))
+        exit(0);
     int id = atoi(driver_data[0].c_str());
     int age = atoi(driver_data[1].c_str());
     char statusLetter = driver_data[2].c_str()[0];
     int experience = atoi(driver_data[3].c_str());
     int cabId = atoi(driver_data[4].c_str());
     Status status = Status(statusLetter);
-    // check if the arguments from input are valid. if not exit from program.
-    if (!valid->validDreiver(id, age, status,experience,cabId))
-        exit(0);
     // if all is valid create new driver and send to server
     Driver* driver = new Driver(id, age, status, experience, cabId);
     // create new socket

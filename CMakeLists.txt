@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 3.6)
 project(ex6)
 
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++0x")
 
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -Wextra")
 
@@ -41,8 +41,12 @@ set(SOURCE_FILES
         TaxiCenter.h
         Tcp.cpp
         Tcp.h
-        Validation.cpp Validation.h
-        ThreadPool.cpp ThreadPool.h Task.cpp Task.h
+        Validation.cpp
+        Validation.h
+        ThreadPool.cpp
+        ThreadPool.h
+        Task.cpp
+        Task.h
         )
 set(BOOST_ROOT CACHE PATH "/usr/include/boost/")
 find_package(Boost 1.57.0 COMPONENTS serialization system)

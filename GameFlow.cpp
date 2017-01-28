@@ -406,7 +406,7 @@ void GameFlow::moveTheClock() {
         if (trips[i]->getPath()->empty()) {
             trips[i]->getDriver()->setAvailable(true);
             taxiCenter->popTrip(i);
-            this->tripsNum--;
+            decreaseTripNum();
         }
     }
     time++;
