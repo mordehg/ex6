@@ -39,7 +39,7 @@ public:
 
     ~Matrix();
 
-    void setObstacles(int num);
+    void setObstacles(int x, int y);
 
     int mapSize();
 };

@@ -44,13 +44,22 @@ bool Validation::validMapNum(int numOfArgument) {
  * @param size_y y input
  * @return true if valid, else false;
  */
-bool Validation::validMap(int size_x, int size_y) {
+bool Validation::validMap(vector<string> mapData) {
+    int size_x,size_y;
     if (this->is_server) {
-        if (size_x <= 0 || size_y <= 0) {
+        if(mapData.size()!=2){
             cout << "-1" << endl;
             return false;
         }
-        return true;
+        else{
+            size_x=atoi(mapData[0].c_str());
+            size_y=atoi(mapData[1].c_str());
+            if (size_x <= 0 || size_y <= 0) {
+                cout << "-1" << endl;
+                return false;
+            }
+            return true;
+        }
     }
     return false;
 }
@@ -62,12 +71,14 @@ bool Validation::validMap(int size_x, int size_y) {
  * @return true if valid, else false;
  */
 bool Validation::validObst(Map* map,int obsticalNum) {
-    if (this->is_server) {
-        if (obsticalNum < 0 || obsticalNum > map->mapSize()) {
-            cout << "-1" << endl;
-            return false;
+    if (validObsLength(obsticalNum)) {
+        if (this->is_server) {
+            if (obsticalNum < 0 || obsticalNum > map->mapSize()) {
+                cout << "-1" << endl;
+                return false;
+            }
+            return true;
         }
-        return true;
     }
     return false;
 }
@@ -115,6 +126,9 @@ bool Validation::validTrip(Map* map, int id, int xStart, int yStart, int xEnd, i
         if (xStart >= map->getRowsSize() || xEnd >= map->getRowsSize()
             || yStart >= map->getColumnsSize() || yEnd >= map->getColumnsSize())
             valid = false;
+        if(xStart==yStart && xEnd==yEnd){
+            valid=false;
+        }
         if (map->getBlock(xStart,xEnd)->getIsObstacle()){
             valid=false;
         }
@@ -259,3 +273,70 @@ bool Validation::validDreiver(int id, int age, Status status, int exp, int cabID
     return false;
 }
 
+bool Validation::validObsLength(int numOfArgument) {
+    if(this->is_server){
+        if (numOfArgument != 1){
+            cout << "-1" << endl;
+            return false;
+        }
+        return true;
+    }
+    return false;
+}
+
+bool Validation::validObsPoint(Map* map, int x, int y) {
+    bool valid = true;
+    if(this->is_server){
+        if (x < 0 || y < 0)
+            valid = false;
+        if (x >= map->getRowsSize() || y >= map->getColumnsSize())
+            valid = false;
+        if (!valid)
+            cout << "-1" << endl;
+    }
+    return valid;
+}
+
+bool Validation::validPointLength(int numOfArgument) {
+    if(this->is_server){
+        if (numOfArgument != 2){
+            cout << "-1" << endl;
+            return false;
+        }
+        return true;
+    }
+    return false;
+}
+
+bool Validation::validChoiceLength(int numOfArgument) {
+    if(this->is_server){
+        if (numOfArgument != 1){
+            cout << "-1" << endl;
+            return false;
+        }
+        return true;
+    }
+    return false;
+}
+
+bool Validation::validNumDriverLength(int numOfArgument) {
+    if(this->is_server){
+        if (numOfArgument != 1){
+            cout << "-1" << endl;
+            return false;
+        }
+        return true;
+    }
+    return false;
+}
+
+bool Validation::validNumDrivers(int num){
+    if(this->is_server){
+        if (num <=0 ){
+            cout << "-1" << endl;
+            return false;
+        }
+        return true;
+    }
+    return false;
+}

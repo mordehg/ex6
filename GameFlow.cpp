@@ -120,10 +120,14 @@ void GameFlow::establishCommunication(string str) {
  * menu optinos of program
  */
 void GameFlow::startGame() {
-    int sizeX, sizeY, numOfObstacles;
+    vector<string> obsData, mapData;
+    int sizeX, sizeY, numOfObstacles, numOfArgs;
     do {
-        cin >> sizeX >> sizeY;
-    } while (!this->validCheck->validMap(sizeX,sizeY));
+        mapData=inputParserSpace();
+        //cin >> sizeX >> sizeY;
+    } while (!this->validCheck->validMap(mapData));
+    sizeX=atoi(mapData[0].c_str());
+    sizeY=atoi(mapData[1].c_str());
     // create matrix.
     Matrix matrix(sizeX, sizeY);
     //Matrix matrix(6, 6);
@@ -135,38 +139,53 @@ void GameFlow::startGame() {
 
     //set obstacles
     do {
-        cin >> numOfObstacles;
-    } while (!this->validCheck->validObst(this->grid, numOfObstacles));
-    if (numOfObstacles > 0) {
-        this->grid->setObstacles(numOfObstacles);
+        obsData = inputParser();
+        numOfArgs = obsData.size();
+    } while (!this->validCheck->validObst(this->grid, numOfArgs));
+    numOfObstacles=atoi(obsData[0].c_str());
+    while (numOfObstacles > 0) {
+        vector<string> pointData = inputParser();
+        if (this->validCheck->validPointLength(pointData.size())) {
+            int x = atoi(pointData[0].c_str());
+            int y = atoi(pointData[1].c_str());
+            if (this->validCheck->validObsPoint(this->getMap(), x, y)){
+                this->grid->setObstacles(x, y);
+                numOfObstacles--;
+            }
+        }
     }
     int choice;
-    cin >> choice;
-    option = choice;
-    while (choice != 7) {
-        switch (choice) {
-            case 1:
-                this->recieveDrivers();
-                break;
-            case 2:
-                finishTrips.push_back(false);
-                this->insertARide();
-                break;
-            case 3:
-                this->insertAVehicle();
-                break;
-            case 4:
-                this->printDriverLocation();
-                break;
-            case 9:
-                this->moveTheClock();
-                break;
-            default:
-                cout << "-1" << endl;
-                break;
+    choice=0;
+    do {
+        vector<string> choiceData = inputParser();
+        if(this->validCheck->validChoiceLength(choiceData.size())){
+            choice = atoi(choiceData[0].c_str());
+            option = choice;
+            switch (choice) {
+                case 1:
+                    this->recieveDrivers();
+                    break;
+                case 2:
+                    finishTrips.push_back(false);
+                    this->insertARide();
+                    break;
+                case 3:
+                    this->insertAVehicle();
+                    break;
+                case 4:
+                    this->printDriverLocation();
+                    break;
+                case 7:
+                    break;
+                case 9:
+                    this->moveTheClock();
+                    break;
+                default:
+                    cout << "-1" << endl;
+                    break;
+            }
         }
-        cin >> choice;
-    }
+    } while (choice != 7);
     //do join and exit from all threads
     this->threadPool->terminate();
     for(int i=0; i<this->driversNum;i++){
@@ -244,22 +263,27 @@ void *createBfsForTrip(void* ptr) {
  */
 void GameFlow::recieveDrivers() {
     int numOfDrivers;
-    cin >> numOfDrivers;
-    char buffer[9999];
-    this->establishCommunication("TCP");
-    this->comm->initialize();
-    int tripIndex=this->tripsNum;
-    for (int i=0; i<numOfDrivers;i++) {
-        this->comm->acceptClient();
-        ClientHandler* handler = new ClientHandler(this->comm,
-                                                   this->taxiCenter, this, i);
-        handlers.push_back(handler);
-        pthread_create(&this->threads[i], NULL, test, (void*)handler);
-        //pthread_join(this->threads[i], NULL);
-        finish_10.push_back(true);
+    vector<string> driverNumData = inputParser();
+    if (this->validCheck->validNumDriverLength(driverNumData.size())) {
+        numOfDrivers = atoi(driverNumData[0].c_str());
+        if (this->validCheck->validNumDrivers(numOfDrivers)){
+            char buffer[9999];
+            this->establishCommunication("TCP");
+            this->comm->initialize();
+            int tripIndex = this->tripsNum;
+            for (int i = 0; i < numOfDrivers; i++) {
+                this->comm->acceptClient();
+                ClientHandler *handler = new ClientHandler(this->comm,
+                                                           this->taxiCenter, this, i);
+                handlers.push_back(handler);
+                pthread_create(&this->threads[i], NULL, test, (void *) handler);
+                //pthread_join(this->threads[i], NULL);
+                finish_10.push_back(true);
+            }
+            this->driversNum = numOfDrivers;
+            this->tripsNum = tripIndex;
+        }
     }
-    this->driversNum=numOfDrivers;
-    this->tripsNum=tripIndex;
 }
 
 bool GameFlow::buildTrip() {
@@ -465,4 +489,25 @@ void GameFlow::decreaseTripNum(){
 
 Map* GameFlow::getMap(){
     return this->grid;
+}
+
+vector<string> GameFlow::inputParserSpace() {
+    vector<string> data;
+    string input;
+    getline(cin, input);
+    int startPos = 0;
+    int i = 0;
+    string current_str;
+    while (input.length() != i) {
+        if (input[i] == ' ') {
+            int len = i-startPos;
+            current_str = input.substr(startPos,len);
+            data.push_back(current_str);
+            startPos = i+1;
+        }
+        i++;
+    }
+    current_str = input.substr(startPos,i-startPos+1);
+    data.push_back(current_str);
+    return data;
 }

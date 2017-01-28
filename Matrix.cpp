@@ -121,17 +121,11 @@ Block *Matrix::getBlock(int x, int y){
  * set obstacle in the map
  * @param num the num of obstacle the user asked
  */
-void Matrix::setObstacles(int num) {
-    int x, y;
-    char c;
-    while (num > 0) {
-        cin >> x >> c >> y;
-        // getting a point in the format x,y
-        map[x][y]->setIsObstacle(true);
-        num--;
-    }
-
+void Matrix::setObstacles(int x, int y) {
+    // getting a point in the format x,y
+    map[x][y]->setIsObstacle(true);
 }
+
 
 /**
  *

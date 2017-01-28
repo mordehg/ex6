@@ -83,6 +83,8 @@ public:
 
     void resetFinish10();
 
+    vector<string> inputParserSpace();
+
     ~GameFlow();
 
 };

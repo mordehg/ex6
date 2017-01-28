@@ -33,7 +33,7 @@ public:
 
     virtual Block *getBlock(int x, int y) {};
 
-    virtual void setObstacles(int num) {};
+    virtual void setObstacles(int x, int y) {};
 
     virtual int mapSize() {};
 

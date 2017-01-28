@@ -26,7 +26,7 @@ public:
 
     bool validMapNum(int numOfArgument);
 
-    bool validMap(int size_x,int size_y);
+    bool validMap(vector<string> mapData);
 
     bool validObst(Map* map, int obsticalNum);
 
@@ -47,6 +47,17 @@ public:
 
     bool validDreiver(int id, int age, Status status, int exp, int capID);
 
+    bool validObsLength(int numOfArgument);
+
+    bool validObsPoint(Map* map, int x, int y);
+
+    bool validPointLength(int numOfArgument);
+
+    bool validChoiceLength(int numOfArgument);
+
+    bool validNumDriverLength(int numOfArgument);
+
+    bool validNumDrivers(int num);
 };
 
 
