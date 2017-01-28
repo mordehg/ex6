@@ -10,9 +10,15 @@
  * @param taxiCenter from server. if celient contain null.
  * @return
  */
-Validation::Validation(bool isServer, TaxiCenter* taxiCenter) {
+Validation::Validation(bool isServer) {
     this->is_server = isServer;
-    this->taxiCenter=taxiCenter;
+    this->taxiCenter=NULL;
+
+}
+
+void Validation::setTaxiCenter(TaxiCenter* taxiCenter){
+    if(this->is_server)
+        this->taxiCenter=taxiCenter;
 }
 
 /**
@@ -202,7 +208,7 @@ bool Validation::validDriverIdLength(int numOfArgument){
  */
 bool Validation::validDriverId(int id){
     if(this->is_server){
-        if (this->taxiCenter->getDriver(id)){
+        if (!this->taxiCenter->getDriver(id)){
             cout << "-1" << endl;
             return false;
         }

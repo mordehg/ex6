@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.6)
-project(ex5)
+project(ex6)
 
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
 
@@ -42,6 +42,7 @@ set(SOURCE_FILES
         Tcp.cpp
         Tcp.h
         Validation.cpp Validation.h
+        ThreadPool.cpp ThreadPool.h Task.cpp Task.h
         )
 set(BOOST_ROOT CACHE PATH "/usr/include/boost/")
 find_package(Boost 1.57.0 COMPONENTS serialization system)
@@ -71,7 +72,15 @@ add_executable(Client ${SOURCE_FILES}
         Matrix.cpp
         Matrix.h
         Bfs.cpp
-        Bfs.h Udp.cpp Udp.h Validation.cpp Validation.h)
+        Bfs.h
+        Udp.cpp
+        Udp.h
+        Validation.cpp
+        Validation.h
+        ThreadPool.cpp
+        ThreadPool.h
+        Task.cpp
+        Task.h)
 add_executable(Server ${SOURCE_FILES}
         Server.cpp
         Block.cpp
@@ -103,14 +112,19 @@ add_executable(Server ${SOURCE_FILES}
         Passenger.h
         TaxiCenter.cpp
         TaxiCenter.h
-        Validation.cpp Validation.h
+        Validation.cpp
+        Validation.h
+        ThreadPool.cpp
+        ThreadPool.h
+        Task.cpp
+        Task.h
         )
 
-#add_executable(ex5 ${SOURCE_FILES})
-#target_link_libraries(ex5 ${Boost_LIBRARIES})
+add_executable(ex6 ${SOURCE_FILES})
+target_link_libraries(ex6 ${Boost_LIBRARIES} -lpthread)
 
 target_link_libraries(Client ${Boost_LIBRARIES} -lpthread)
 target_link_libraries(Server ${Boost_LIBRARIES} -lpthread)
 
 
-#target_link_libraries(ex5 ${Boost_LIBRARIES})
+#target_link_libraries(ex6 ${Boost_LIBRARIES} -lpthread)

@@ -50,15 +50,15 @@ public:
  * @return nothing
  */
 GameFlow::GameFlow(int portNo1) {
+    this->threadPool = new ThreadPool(5);
     this->bfs = NULL;
     this->grid = NULL;
-    this->taxiCenter = new TaxiCenter(this->bfs);
     this->comm = NULL;
     this->time = 0;
     this->driversNum=0;
     this->tripsNum=0;
     this->portNo = portNo1;
-    this->validCheck = new Validation(true, this->taxiCenter);
+    this->validCheck = new Validation(true);
     pthread_mutex_init(&this->connection_locker, 0);
     pthread_mutex_init(&this->list_locker, 0);
 }
@@ -74,6 +74,7 @@ GameFlow::~GameFlow() {
     delete (comm);
     delete (taxiCenter);
     delete(validCheck);
+    delete(threadPool);
     while(!handlers.empty()||!finish_10.empty()){
         ClientHandler *c=handlers.back();
         handlers.pop_back();
@@ -129,6 +130,9 @@ void GameFlow::startGame() {
     // save matrix address at map object.
     this->grid = &matrix;
     this->bfs = new Bfs(this->grid);
+    this->taxiCenter = new TaxiCenter(this->bfs);
+    this->validCheck->setTaxiCenter(this->taxiCenter);
+
     //set obstacles
     do {
         cin >> numOfObstacles;
@@ -156,7 +160,7 @@ void GameFlow::startGame() {
                 break;
             case 9:
                 this->moveTheClock();
-                //this->sendClientNewLocation();
+                break;
             default:
                 cout << "-1" << endl;
                 break;
@@ -164,6 +168,7 @@ void GameFlow::startGame() {
         cin >> choice;
     }
     //do join and exit from all threads
+    this->threadPool->terminate();
     for(int i=0; i<this->driversNum;i++){
         this->killTheClient(i);
         //pthread_join(this->threads[i], NULL);
@@ -218,6 +223,7 @@ void *test(void* ptr){
     pthread_exit(ptr);
 }
 
+
 void *createBfsForTrip(void* ptr) {
     TripHandler* handlerT = (TripHandler*)ptr;
     pthread_mutex_lock(&handlerT->flow->list_locker);
@@ -230,7 +236,6 @@ void *createBfsForTrip(void* ptr) {
         finishTrips[handlerT->index] = true;
     }
     pthread_mutex_unlock(&handlerT->flow->list_locker);
-    pthread_exit(ptr);
 }
 
 /**
@@ -299,8 +304,11 @@ void GameFlow::insertARide() {
         Trip* trip=taxiCenter->getTrips()[tripIndex];
         int numDrivers=this->driversNum;
         TripHandler* handler = new TripHandler(this,trip,tripIndex);
-        pthread_create(&this->threadsTrip[tripIndex], NULL, createBfsForTrip,
-                       (void*)handler);
+        //pthread_create(&this->threadsTrip[tripIndex], NULL, createBfsForTrip,
+         //              (void*)handler);
+        Task * bfs_task = new Task(createBfsForTrip, (void*)handler);
+        this->threadPool->addTask(bfs_task);
+        //this->threadPool->doTasks();
         this->tripsNum=tripIndex+1;
         this->driversNum=numDrivers;
         // set the pointers to point on null so when
@@ -370,9 +378,11 @@ void GameFlow::moveTheClock() {
         if (trips[i]->getStartTime() <= time && !trips[i]->getPath()
                 ->empty()) {
             trips[i]->moveOneStep();
-        } else if (trips[i]->getPath()->empty()) {
+        }
+        if (trips[i]->getPath()->empty()) {
             trips[i]->getDriver()->setAvailable(true);
             taxiCenter->popTrip(i);
+            this->tripsNum--;
         }
     }
     time++;

@@ -18,7 +18,9 @@ private:
     bool is_server;
     TaxiCenter* taxiCenter;
 public:
-    Validation(bool isServer, TaxiCenter* taxiCenter);
+    Validation(bool isServer);
+
+    void setTaxiCenter(TaxiCenter* taxiCenter);
 
     ~Validation();
 

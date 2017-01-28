@@ -37,7 +37,7 @@ vector<string> inputParser() {
 
 int main(int argc, char *argv[]) {
     // create validation class. send null - dont have taxi center
-    Validation* valid = new Validation(false, NULL);
+    Validation* valid = new Validation(false);
     //get string input from user and split string by ','
     vector<string> driver_data = inputParser();
     // check if num of arguments from input valid. if not exit from program.

@@ -9,7 +9,7 @@
 #include <list>
 #include <vector>
 #include <thread>
-#include<pthread.h>
+#include <pthread.h>
 #include "Status.h"
 #include "Map.h"
 #include "TaxiCenter.h"
@@ -20,7 +20,9 @@
 #include "Socket.h"
 #include "Matrix.h"
 #include "Validation.h"
-//#include "ClientHandlertest.h"
+#include "Task.h"
+#include "ThreadPool.h"
+
 
 using namespace std;
 
@@ -38,6 +40,7 @@ private:
     int driversNum;
     int tripsNum;
     bool buildTrip();
+    ThreadPool* threadPool;
 public:
     pthread_mutex_t connection_locker;
     pthread_mutex_t list_locker;
