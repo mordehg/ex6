@@ -1,7 +1,3 @@
-//
-// Created by gili on 18/01/17.
-//
-
 #include <unistd.h>
 #include "ThreadPool.h"
 static void *startTasks(void *arg) {
