@@ -115,15 +115,7 @@ bool Validation::validTripLength(int numOfArgument) {
 
 /**
  * check if arguments of trip are valid. if not print -1.
- * @param map of the city
- * @param id of trip
- * @param xStart x value of start point
- * @param yStart y value of start point
- * @param xEnd x value of end point
- * @param yEnd y value of end point
- * @param numOfPassengers number of passengers
- * @param tarrif tarrif
- * @param startTime start time of trip
+ * @param trip_data the split string from user input
  * @return true if valid, else false;
  */
 bool Validation::validTrip(Map* map, vector<string> trip_data) {

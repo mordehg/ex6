@@ -10,14 +10,18 @@ ThreadPool::ThreadPool(int threads_num) {
     this->threads = new pthread_t[threads_num];
     this->pool_size = threads_num;
     this->stop = false;
-    pthread_mutex_init(&lock, NULL);
+    pthread_mutex_init(&lock, 0);
     for (int i = 0; i < threads_num; i++) {
         pthread_create(threads + i, NULL, startTasks, this);
     }
 }
 
 ThreadPool::~ThreadPool() {
-    delete[] threads;
+    //delete[] threads;
+    /*
+    for(int i = 0;i<this->pool_size;++i)
+        pthread_join(this->threads[i],NULL);
+     */
     pthread_mutex_destroy(&this->lock);
 }
 

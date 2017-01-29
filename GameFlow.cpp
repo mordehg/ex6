@@ -72,6 +72,7 @@ GameFlow::GameFlow(int portNo1) {
  * destractur
  */
 GameFlow::~GameFlow() {
+    delete(threadPool);
     option=NULL;
     pthread_mutex_destroy(&this->connection_locker);
     pthread_mutex_destroy(&this->list_locker);
@@ -79,7 +80,6 @@ GameFlow::~GameFlow() {
     delete (comm);
     delete (taxiCenter);
     delete(validCheck);
-    delete(threadPool);
     while(!handlers.empty()||!finish_10.empty()){
         ClientHandler *c=handlers.back();
         handlers.pop_back();
@@ -95,7 +95,7 @@ GameFlow::~GameFlow() {
 vector<string> GameFlow::inputParser() {
     vector<string> data;
     string input;
-    cin >> input;
+    getline(cin, input);
     int startPos = 0;
     int i = 0;
     string current_str;
@@ -137,7 +137,6 @@ void GameFlow::startGame() {
     do {
         mapData=inputParserSpace();
     } while (!this->validCheck->validMap(mapData));
-
     // cast from string to int.
     sizeX=atoi(mapData[0].c_str());
     sizeY=atoi(mapData[1].c_str());
@@ -438,9 +437,9 @@ void GameFlow::moveTheClock() {
                 ->empty()) {
             trips[i]->moveOneStep();
         }
-        else if (trips[i]->getPath()->empty()) {
+        if (trips[i]->getPath()->empty()) {
             trips[i]->getDriver()->setAvailable(true);
-            taxiCenter->popTrip(i);
+            taxiCenter->popTrip(trips[i]->getTripId());
             decreaseTripNum();
         }
     }

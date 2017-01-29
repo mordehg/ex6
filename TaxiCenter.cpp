@@ -146,11 +146,10 @@ long TaxiCenter::numOfTrips() {
 /**
 * delete trip at index i from trips vector
  */
-void TaxiCenter::popTrip(int i) {
+void TaxiCenter::popTrip(int id) {
     vector<Trip *> temp;
-    int j=0;
     while (!trips.empty()) {
-        if(j==i){
+        if(trips.back()->getTripId()==id){
             Trip *t = trips.back();
             trips.pop_back();
             delete (t);
@@ -159,7 +158,6 @@ void TaxiCenter::popTrip(int i) {
             temp.push_back(trips.back());
             trips.pop_back();
         }
-        j++;
     }
     while (!temp.empty()) {
         trips.push_back((temp.back()));
@@ -171,11 +169,10 @@ void TaxiCenter::popTrip(int i) {
  * delete driver at index i from drivers vector.
  */
 
-void TaxiCenter::popDriver(int i) {
+void TaxiCenter::popDriver(int id) {
     vector<Driver *> temp;
-    int j=0;
     while (!driversInfo.empty()) {
-        if (j==i){
+        if (driversInfo.back()->getDriverId()==id){
             Driver *d = driversInfo.back();
             driversInfo.pop_back();
             delete (d);
@@ -184,7 +181,6 @@ void TaxiCenter::popDriver(int i) {
             temp.push_back(driversInfo.back());
             driversInfo.pop_back();
         }
-        j++;
     }
     while (!temp.empty()) {
         driversInfo.push_back((temp.back()));
@@ -196,11 +192,10 @@ void TaxiCenter::popDriver(int i) {
  * delete cab at index i from cabs vector.
  */
 
-void TaxiCenter::popCab(int i) {
+void TaxiCenter::popCab(int id) {
     vector<Cab *> temp;
-    int j=0;
     while (!cabs.empty()) {
-        if(i==j){
+        if(cabs.back()->getCabId()==id){
             Cab *c = cabs.back();
             cabs.pop_back();
             delete (c);
@@ -209,7 +204,6 @@ void TaxiCenter::popCab(int i) {
             temp.push_back(cabs.back());
             cabs.pop_back();
         }
-        j++;
     }
     while (!temp.empty()) {
         cabs.push_back((temp.back()));
