@@ -1,10 +1,10 @@
 all: server.out client.out
 
-server.out: Server.o Block.o Cab.o Driver.o LuxuryCab.o Point.o StandardCab.o Trip.o Bfs.o GameFlow.o Map.o Matrix.o Passenger.o TaxiCenter.o Socket.o Udp.o Tcp.o
-	g++ -std=c++0x Server.o Block.o Cab.o Driver.o LuxuryCab.o Point.o StandardCab.o Trip.o Bfs.o GameFlow.o Map.o Matrix.o Passenger.o TaxiCenter.o Socket.o Udp.o Tcp.o -lboost_serialization -lpthread -I. -o server.out
+server.out: Server.o Block.o Cab.o Driver.o LuxuryCab.o Point.o StandardCab.o Trip.o Bfs.o GameFlow.o Map.o Matrix.o Passenger.o TaxiCenter.o Socket.o Udp.o Tcp.o ThreadPool.o Validation.o Task.o
+	g++ -std=c++0x Server.o Block.o Cab.o Driver.o LuxuryCab.o Point.o StandardCab.o Trip.o Bfs.o GameFlow.o Map.o Matrix.o Passenger.o TaxiCenter.o Socket.o Udp.o Tcp.o ThreadPool.o Validation.o Task.o -lboost_serialization -lpthread -I. -o server.out
 
-client.out: Client.o Block.o Cab.o Driver.o LuxuryCab.o Point.o StandardCab.o Trip.o Map.o Matrix.o Bfs.o Socket.o Udp.o Tcp.o
-	g++ -std=c++0x Client.o Block.o Cab.o Driver.o LuxuryCab.o Point.o StandardCab.o Trip.o Map.o Matrix.o Bfs.o Socket.o Udp.o Tcp.o -lboost_serialization -lpthread -I. -o client.out
+client.out: Client.o Block.o Cab.o Driver.o LuxuryCab.o Point.o StandardCab.o Trip.o Map.o Matrix.o Bfs.o Socket.o Udp.o Tcp.o ThreadPool.o Validation.o Task.o TaxiCenter.o
+	g++ -std=c++0x Client.o Block.o Cab.o Driver.o LuxuryCab.o Point.o StandardCab.o Trip.o Map.o Matrix.o Bfs.o Socket.o Udp.o Tcp.o ThreadPool.o Validation.o Task.o TaxiCenter.o -lboost_serialization -lpthread -I. -o client.out
 
 Client.o: Client.cpp
 	g++ -std=c++0x -c Client.cpp
@@ -60,6 +60,15 @@ Udp.o: Udp.cpp Udp.h
 
 Tcp.o: Tcp.cpp Tcp.h
 	g++ -std=c++0x -c Tcp.cpp
+
+ThreadPool.o: ThreadPool.cpp ThreadPool.h
+	g++ -std=c++0x -c ThreadPool.cpp
+
+Validation.o: Validation.cpp Validation.h
+	g++ -std=c++0x -c Validation.cpp
+
+Task.o: Task.cpp Task.h
+	g++ -std=c++0x -c Task.cpp
 
 clean:
 	rm -f *.o a.out

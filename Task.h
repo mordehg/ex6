@@ -9,20 +9,6 @@
 #include <thread>
 #include <pthread.h>
 
-/*class TripHandler{
-public:
-    GameFlow* flow;
-    Trip* trip;
-    int index;
-    TripHandler(GameFlow* game, Trip* inputTrip, int i) {
-        this->flow = game;
-        this->trip = inputTrip;
-        this->index = i;
-    }
-    ~TripHandler() { }
-};*/
-
-
 class Task {
 private:
     void *arg;

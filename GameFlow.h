@@ -53,7 +53,7 @@ public:
     void insertAVehicle();
     void printDriverLocation();
     void moveTheClock();
-    void inputObs();
+    bool inputObs();
     void popFinishTrips(int i);
     void decreaseTripNum();
     TaxiCenter* getCenter();

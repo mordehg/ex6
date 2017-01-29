@@ -131,24 +131,29 @@ void GameFlow::establishCommunication(string str) {
  * run the program.
  */
 void GameFlow::startGame() {
+    bool currectObs;
     int sizeX, sizeY;
     // get input string for map from user.
     vector<string> mapData;
     do {
-        mapData=inputParserSpace();
-    } while (!this->validCheck->validMap(mapData));
-    // cast from string to int.
-    sizeX=atoi(mapData[0].c_str());
-    sizeY=atoi(mapData[1].c_str());
-    // create matrix, bfs, taxi center and update taxi center member at
-    // validation
-    Matrix matrix(sizeX, sizeY);
+        mapData = inputParserSpace();
+        // cast from string to int.
+        sizeX = atoi(mapData[0].c_str());
+        sizeY = atoi(mapData[1].c_str());
+        if (!this->validCheck->validMap(mapData))
+            continue;
+        // create matrix, bfs, taxi center and update taxi center member at
+        Matrix tampMatrix(sizeX, sizeY);
+        this->grid = &tampMatrix;
+        //this->bfs = new Bfs(this->grid);
+        // get input string for obs from user.
+        currectObs = this->inputObs();
+    } while (!currectObs);
+    Matrix matrix(sizeX,sizeY);
     this->grid = &matrix;
     this->bfs = new Bfs(this->grid);
     this->taxiCenter = new TaxiCenter(this->bfs);
     this->validCheck->setTaxiCenter(this->taxiCenter);
-    // get input string for obs from user.
-    this->inputObs();
     // run menu of program.
     this->menu();
     //do join and exit from all threads
@@ -200,14 +205,15 @@ void GameFlow::menu(){
 /**
  * get input string fot obs from user, check validation.
  */
-void GameFlow::inputObs(){
+bool GameFlow::inputObs(){
     // get input string for obstacles from user.
     vector<string> obsData, pointData;
     int numOfArgs,numOfObstacles;
-    do {
-        obsData = inputParser();
-        numOfArgs = obsData.size();
-    } while (!this->validCheck->validObst(this->grid, numOfArgs, obsData));
+    obsData = inputParser();
+    numOfArgs = obsData.size();
+    if (!this->validCheck->validObst(this->grid, numOfArgs, obsData))
+        return false;
+    //else
     numOfObstacles=atoi(obsData[0].c_str());
     while (numOfObstacles > 0) {
         pointData = inputParser();
@@ -217,9 +223,14 @@ void GameFlow::inputObs(){
                 int y = atoi(pointData[1].c_str());
                 this->grid->setObstacles(x, y);
                 numOfObstacles--;
+            } else {
+                return false;
             }
+        } else {
+            return false;
         }
     }
+    return true;
 }
 
 /**

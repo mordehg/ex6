@@ -17,11 +17,8 @@ ThreadPool::ThreadPool(int threads_num) {
 }
 
 ThreadPool::~ThreadPool() {
-    //delete[] threads;
-    /*
-    for(int i = 0;i<this->pool_size;++i)
-        pthread_join(this->threads[i],NULL);
-     */
+    this->terminate();
+    //delete[] this->threads;
     pthread_mutex_destroy(&this->lock);
 }
 
@@ -50,6 +47,9 @@ void ThreadPool::addTask(Task *task) {
 
 void ThreadPool::terminate() {
     this->stop = true;
+    for (int i = 0; i < this->pool_size; i++) {
+        pthread_join(*(this->threads + i), NULL);
+    }
 }
 
 queue<Task*> ThreadPool::getTasks(){
