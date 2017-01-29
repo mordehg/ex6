@@ -31,7 +31,6 @@ public:
     }
 };
 
-vector<ClientHandler*> handlers;
 
 /**
  * trip handler class - thread trip.
@@ -48,6 +47,9 @@ public:
     }
     ~TripHandler() { }
 };
+
+vector<ClientHandler*> handlers;
+vector<TripHandler*> handlers_trip;
 
 /**
  * constractur of game flow.
@@ -72,7 +74,7 @@ GameFlow::GameFlow(int portNo1) {
  * destractur
  */
 GameFlow::~GameFlow() {
-    delete(threadPool);
+    //delete(threadPool);
     option=NULL;
     pthread_mutex_destroy(&this->connection_locker);
     pthread_mutex_destroy(&this->list_locker);
@@ -85,6 +87,11 @@ GameFlow::~GameFlow() {
         handlers.pop_back();
         delete (c);
         finish_10.pop_back();
+    }
+    while(!handlers_trip.empty()){
+        TripHandler *t=handlers_trip.back();
+        handlers_trip.pop_back();
+        delete(t);
     }
 }
 
@@ -157,7 +164,7 @@ void GameFlow::startGame() {
     // run menu of program.
     this->menu();
     //do join and exit from all threads
-    this->threadPool->terminate();
+    //this->threadPool->terminate();
     for(int i=0; i<this->driversNum;i++){
         this->killTheClient(i);
     }
@@ -375,8 +382,10 @@ void GameFlow::insertARide() {
         TripHandler* handler = new TripHandler(this,trip,tripIndex);
         //pthread_create(&this->threadsTrip[tripIndex], NULL, createBfsForTrip,
          //              (void*)handler);
+        handlers_trip.push_back(handler);
         Task * bfs_task = new Task(createBfsForTrip, (void*)handler);
         this->threadPool->addTask(bfs_task);
+        bfs_task=NULL;
         //this->threadPool->doTasks();
         this->tripsNum=tripIndex+1;
         this->driversNum=numDrivers;

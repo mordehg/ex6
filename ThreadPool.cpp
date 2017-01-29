@@ -18,8 +18,13 @@ ThreadPool::ThreadPool(int threads_num) {
 
 ThreadPool::~ThreadPool() {
     this->terminate();
-    //delete[] this->threads;
+    delete[] this->threads;
     pthread_mutex_destroy(&this->lock);
+    while(!this->tasks.empty()){
+        Task* task = this->tasks.front();
+        this->tasks.pop();
+        delete(task);
+    }
 }
 
 
@@ -31,6 +36,7 @@ void ThreadPool::doTasks() {
             this->tasks.pop();
             pthread_mutex_unlock(&lock);
             task->execute();
+            delete(task);
         }
         else {
             pthread_mutex_unlock(&this->lock);
@@ -47,8 +53,8 @@ void ThreadPool::addTask(Task *task) {
 
 void ThreadPool::terminate() {
     this->stop = true;
-    for (int i = 0; i < this->pool_size; i++) {
-        pthread_join(*(this->threads + i), NULL);
+    for (int i = 0; i < 5; i++) {
+        pthread_join(threads[i],NULL);
     }
 }
 
